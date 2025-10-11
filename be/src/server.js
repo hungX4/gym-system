@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const configViewEngine = require('./config/viewEngine.js');
 const webRoute = require("./routes/web.js");
-
+const connection = require('./config/connectDb.js');
 const app = express();
 
 // config ViewEngine
@@ -14,6 +14,7 @@ const port = process.env.PORT || 8002;
 const hostName = process.env.HOST_NAME;
 
 app.use('/', webRoute);
+connection();
 app.listen(port, hostName, () => {
     console.log(`Example app listening on port ${port}, ${hostName}`);
 })

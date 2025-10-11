@@ -1,10 +1,17 @@
+const db = require('../models/index');
 
+const getHomePage = async (req, res) => {
 
-const getHomePage = (req, res) => {
-    res.render('home');
+    try {
+        let data = await db.Member.findAll();
+        console.log('>>>>>', data);
+        res.render('home', { data: JSON.stringify(data) });
+    } catch (e) {
+        console.log(e);
+    }
+
 }
 
 module.exports = {
     getHomePage
-
 }
