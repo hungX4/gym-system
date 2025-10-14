@@ -3,7 +3,9 @@ const db = require('../models/index');
 const getHomePage = async (req, res) => {
 
     try {
-        let data = await db.Member.findAll();
+        console.log('db keys:', Object.keys(db));
+        console.log('db.User:', db.Users);
+        let data = await db.Users.findAll();
         console.log('>>>>>', data);
         res.render('home', { data: JSON.stringify(data) });
     } catch (e) {
