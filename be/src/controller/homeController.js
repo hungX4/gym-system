@@ -1,5 +1,9 @@
 const db = require('../models/index');
-
+const { addNewUser,
+    getAllUsers,
+    getUserData,
+    updateUserInformation,
+    deleteCrudById } = require('../services/crudServices')
 const getHomePage = async (req, res) => {
 
     try {
@@ -14,6 +18,55 @@ const getHomePage = async (req, res) => {
 
 }
 
+const getCrudform = (req, res) => {
+    res.render('crud');
+}
+
+const postCrudform = async (req, res) => {
+    let message = await addNewUser(req.body);
+    console.log(message);
+    return res.send('post crud from server!!!');
+}
+
+const displayCrud = async (req, res) => {
+    let data = await getAllUsers();
+    console.log('get all user from database >>>>>', data);
+    res.render('displayCrud', { data: data });
+}
+
+const updateUser = async (req, res) => {
+    const id = req.query.id;
+    if (id) {
+        let userData = await getUserData(id);
+        console.log(userData);
+        res.render('updateCrud', { userData: userData });
+    } else {
+        res.send('User not found!!!');
+    }
+}
+
+const putCrud = async (req, res) => {
+    let data = req.body;
+    await updateUserInformation(data);
+    res.redirect('/display-crud');
+}
+
+
+const deleteCrud = async (req, res) => {
+    const id = req.query.id;
+    if (id) {
+        await deleteCrudById(id);
+        res.redirect('/display-crud');
+    } else {
+        res.send('user not found!!!');
+    }
+}
 module.exports = {
-    getHomePage
+    getHomePage,
+    getCrudform,
+    postCrudform,
+    displayCrud,
+    updateUser,
+    putCrud,
+    deleteCrud
 }

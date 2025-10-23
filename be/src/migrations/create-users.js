@@ -30,10 +30,10 @@ module.exports = {
       gender: {
         type: Sequelize.BOOLEAN
       },
-      typeRole: {
-        type: Sequelize.STRING
+      roleid: {
+        type: Sequelize.BOOLEAN
       },
-      keyRole: {
+      specialty: {
         type: Sequelize.STRING
       },
       createdAt: {
