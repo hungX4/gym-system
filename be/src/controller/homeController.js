@@ -23,10 +23,20 @@ const getCrudform = (req, res) => {
 }
 
 const postCrudform = async (req, res) => {
-    let message = await addNewUser(req.body);
-    console.log(message);
-    return res.send('post crud from server!!!');
-}
+    try {
+        const user = await Users.create(req.body);
+        return res.status(201).json(user);
+    } catch (err) {
+        if (err.name === 'SequelizeValidationError') {
+            return res.status(400).json({
+                error: err.errors.map(e => e.message)
+            });
+        }
+        console.error(err);
+        return res.status(500).json({ error: 'Lỗi server' });
+    }
+};
+
 
 const displayCrud = async (req, res) => {
     let data = await getAllUsers();

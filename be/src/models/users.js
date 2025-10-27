@@ -1,29 +1,76 @@
+// models/users.js
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class Users extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      // ví dụ: Users.hasMany(models.Posts)
     }
   }
-  Users.init({
-    fullname: DataTypes.STRING,
-    phonenumber: DataTypes.STRING,
-    password: DataTypes.STRING,
-    address: DataTypes.STRING,
-    gender: DataTypes.BOOLEAN,
-    roleid: DataTypes.BOOLEAN,
-    specialty: DataTypes.STRING
-  }, {
-    sequelize,
-    modelName: 'Users',
-  });
+
+  Users.init(
+    {
+      fullname: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: { msg: 'Full name không được để trống' },
+          len: { args: [3, 50], msg: 'Full name phải từ 3–50 ký tự' }
+        }
+      },
+      phonenumber: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: { msg: 'Số điện thoại đã tồn tại' },
+        validate: {
+          notEmpty: { msg: 'Số điện thoại không được để trống' },
+          is: {
+            args: /^[0-9]{10,11}$/,
+            msg: 'Số điện thoại không hợp lệ (chỉ gồm 10–11 chữ số)'
+          }
+        }
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: { msg: 'Mật khẩu không được để trống' },
+          len: { args: [6, 100], msg: 'Mật khẩu phải từ 6 ký tự trở lên' }
+        }
+      },
+      address: {
+        type: DataTypes.STRING,
+        validate: {
+          len: { args: [0, 255], msg: 'Địa chỉ quá dài' }
+        }
+      },
+      gender: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        validate: {
+          notNull: { msg: 'Giới tính là bắt buộc' }
+        }
+      },
+      roleid: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: 0
+      },
+      specialty: {
+        type: DataTypes.STRING,
+        validate: {
+          len: { args: [0, 100], msg: 'Chuyên môn tối đa 100 ký tự' }
+        }
+      }
+    },
+    {
+      sequelize,
+      modelName: 'Users',
+      tableName: 'users',
+      timestamps: true
+    }
+  );
+
   return Users;
 };
