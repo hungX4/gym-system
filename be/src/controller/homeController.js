@@ -24,7 +24,7 @@ const getCrudform = (req, res) => {
 
 const postCrudform = async (req, res) => {
     try {
-        const user = await Users.create(req.body);
+        const user = await db.Users.create(req.body);
         return res.status(201).json(user);
     } catch (err) {
         if (err.name === 'SequelizeValidationError') {

@@ -56,18 +56,12 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: 0
-      },
-      specialty: {
-        type: DataTypes.STRING,
-        validate: {
-          len: { args: [0, 100], msg: 'Chuyên môn tối đa 100 ký tự' }
-        }
       }
     },
     {
       sequelize,
       modelName: 'Users',
-      tableName: 'users',
+      tableName: 'Users',
       timestamps: true
     }
   );
