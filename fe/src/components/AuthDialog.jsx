@@ -14,27 +14,29 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
-export default function AuthDialog({ open, onClose }) {
+export default function AuthDialog({ open, onClose, onLoginSuccess }) {
     const [mode, setMode] = React.useState('login'); // 'login' | 'register'
     const [loading, setLoading] = React.useState(false);
 
     // form state
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
-    const [name, setName] = React.useState('');
+    const [fullname, setName] = React.useState('');
+    const [phonenumber, setPhone] = React.useState('');
 
     // messages
     const [snack, setSnack] = React.useState({ open: false, severity: 'success', message: '' });
 
     // simple validation helpers
     const validateRegister = () => {
-        if (!name.trim()) return 'Hãy nhập họ tên';
+        if (!fullname.trim()) return 'Hãy nhập họ tên';
         if (!email.trim()) return 'Hãy nhập email';
         if (!password.trim() || password.length < 6) return 'Mật khẩu cần ≥ 6 ký tự';
+        if (!phonenumber.trim()) return 'Hãy nhập số điện thoại';
         return null;
     };
     const validateLogin = () => {
-        if (!email.trim()) return 'Hãy nhập email';
+        if (!phonenumber.trim()) return 'Hãy nhập số điện thoại';
         if (!password.trim()) return 'Hãy nhập mật khẩu';
         return null;
     };
@@ -47,13 +49,64 @@ export default function AuthDialog({ open, onClose }) {
             return;
         }
         setLoading(true);
+
         // simulate network
-        setTimeout(() => {
+        // setTimeout(() => {
+        //     setLoading(false);
+        //     setSnack({ open: true, severity: 'success', message: 'Đăng ký thành công! Hãy đăng nhập.' });
+        //     // switch to login and keep email filled
+        //     setMode('login');
+        // }, 900);
+        try {
+            const rest = await fetch('http://localhost:8001/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // nếu backend dùng cookie cho refresh token
+                body: JSON.stringify({
+                    fullname,
+                    email,
+                    phonenumber,
+                    password
+                })
+            });
+            // try parse JSON safely
+            let data = null;
+            const text = await rest.text();
+            try { data = text ? JSON.parse(text) : null; } catch (e) { data = { raw: text }; }
+
             setLoading(false);
-            setSnack({ open: true, severity: 'success', message: 'Đăng ký thành công! Hãy đăng nhập.' });
-            // switch to login and keep email filled
+
+            if (!rest.ok) {
+                // handle known cases
+                if (rest.status === 400 && data && data.errors) {
+                    // pick first validation error message if available
+                    const first = data.errors[0];
+                    setSnack({ open: true, severity: 'error', message: first.msg || 'Validation error' });
+                    return;
+                }
+                if (rest.status === 409) {
+                    setSnack({ open: true, severity: 'error', message: (data && data.message) || 'Số điện thoại đã tồn tại' });
+                    return;
+                }
+                // fallback message
+                setSnack({ open: true, severity: 'error', message: (data && (data.message || data.raw)) || `Đăng ký lỗi (${rest.status})` });
+                return;
+            }
+
+            // success (201)
+            setSnack({ open: true, severity: 'success', message: (data && (data.message || 'Đăng ký thành công')) || 'Đăng ký thành công' });
+
+            // autofill login fields (keep phone/email so user dễ đăng nhập)
             setMode('login');
-        }, 900);
+            setPhone(phonenumber);
+            setEmail(email);
+            // clear password for security
+            setPassword('');
+        } catch (error) {
+            console.error('Register error:', err);
+            setLoading(false);
+            setSnack({ open: true, severity: 'error', message: 'Không thể kết nối tới server' });
+        }
     };
 
     // simulate login API
@@ -64,15 +117,40 @@ export default function AuthDialog({ open, onClose }) {
             return;
         }
         setLoading(true);
-        setTimeout(() => {
+        // setTimeout(() => {
+        //     setLoading(false);
+        //     setSnack({ open: true, severity: 'success', message: 'Đăng nhập thành công' });
+        //     // close dialog after short delay (simulate redirect)
+        //     setTimeout(() => {
+        //         setSnack({ open: false, severity: 'success', message: '' });
+        //         onClose?.();
+        //     }, 600);
+        // }, 900);
+        try {
+            const res = await fetch('http://localhost:8001/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // nếu backend dùng cookie cho refresh token
+                body: JSON.stringify({ phonenumber, password })
+            });
+            const data = await res.json();
             setLoading(false);
+            if (!res.ok) {
+                setSnack({ open: true, severity: 'error', message: data.message || 'Đăng nhập lỗi' });
+                return;
+            }
+            // lưu access token ở nơi tạm thời (memory / redux) hoặc httpOnly cookie (nếu backend trả cookie)
+            // ví dụ lưu tạm:
+            window.localStorage.setItem('accessToken', data.accessToken);
+
             setSnack({ open: true, severity: 'success', message: 'Đăng nhập thành công' });
-            // close dialog after short delay (simulate redirect)
-            setTimeout(() => {
-                setSnack({ open: false, severity: 'success', message: '' });
-                onClose?.();
-            }, 600);
-        }, 900);
+            onLoginSuccess?.();
+            // tiếp hành động: fetch profile, redirect, đóng dialog
+            onClose?.();
+        } catch (err) {
+            setLoading(false);
+            setSnack({ open: true, severity: 'error', message: 'Lỗi kết nối' });
+        }
     };
 
     // reset when opening/closing
@@ -82,6 +160,7 @@ export default function AuthDialog({ open, onClose }) {
             setEmail('');
             setPassword('');
             setName('');
+            setPhone('');
             setLoading(false);
         }
     }, [open]);
@@ -106,26 +185,42 @@ export default function AuthDialog({ open, onClose }) {
                 <DialogContent dividers>
                     <Box component="form" noValidate autoComplete="off" sx={{ display: 'grid', gap: 2 }}>
                         {mode === 'register' && (
-                            <TextField
-                                label="Họ và tên"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                fullWidth
-                                autoFocus
-                            />
+                            <>
+                                <TextField
+                                    label="Họ và tên"
+                                    value={fullname}
+                                    onChange={(e) => setName(e.target.value)}
+                                    fullWidth
+                                    autoFocus
+                                    name='name'
+                                />
+                                <TextField
+                                    label="Email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    fullWidth
+                                    type="email"
+                                    name='email'
+                                />
+                            </>
+
                         )}
 
+
                         <TextField
-                            label="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            label="Số điện thoại"
+                            value={phonenumber}
+                            onChange={(e) => setPhone(e.target.value)}
                             fullWidth
-                            type="email"
+                            name='phonenumber'
+                            type="tel"
                             autoFocus={mode === 'login'}
                         />
 
+
                         <TextField
                             label="Mật khẩu"
+                            name='password'
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             fullWidth

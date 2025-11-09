@@ -23,18 +23,19 @@ const getCrudform = (req, res) => {
 }
 
 const postCrudform = async (req, res) => {
-    try {
-        const user = await db.Users.create(req.body);
-        return res.status(201).json(user);
-    } catch (err) {
-        if (err.name === 'SequelizeValidationError') {
-            return res.status(400).json({
-                error: err.errors.map(e => e.message)
-            });
-        }
-        console.error(err);
-        return res.status(500).json({ error: 'Lỗi server' });
-    }
+    // try {
+    //     const user = await db.Users.create(req.body);
+    //     return res.status(201).json(user);
+    // } catch (err) {
+    //     if (err.name === 'SequelizeValidationError') {
+    //         return res.status(400).json({
+    //             error: err.errors.map(e => e.message)
+    //         });
+    //     }
+    //     console.error(err);
+    //     return res.status(500).json({ error: 'Lỗi server' });
+    // }
+    addNewUser(req.body);
 };
 
 

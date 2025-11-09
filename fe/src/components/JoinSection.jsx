@@ -7,7 +7,7 @@ export default function HeroSection() {
             component="section"
             sx={{
                 py: { xs: 6, md: 10 },
-                px: { xs: 10, sm: 6, md: 6 },
+                px: { xs: 2, sm: 6, md: 6 },
                 bgcolor: 'background.default',
             }}
         >
@@ -33,7 +33,7 @@ export default function HeroSection() {
                             bgcolor: 'background.paper',
                             borderRadius: 2,
                             boxShadow: 3,
-                            px: { xs: 3, md: 6 },
+                            px: { xs: 3, md: 2 },
                             py: { xs: 3, md: 4 },
                             mx: 'auto',
                         }}

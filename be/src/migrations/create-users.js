@@ -18,24 +18,27 @@ module.exports = {
       fullname: {
         type: Sequelize.STRING
       },
+      email: {
+        type: Sequelize.STRING
+      },
       password: {
         type: Sequelize.STRING
       },
       phonenumber: {
         type: Sequelize.STRING
       },
-      address: {
-        type: Sequelize.STRING
-      },
-      gender: {
-        type: Sequelize.BOOLEAN
-      },
+      // address: {
+      //   type: Sequelize.STRING
+      // },
+      // gender: {
+      //   type: Sequelize.BOOLEAN
+      // },
       roleid: {
         type: Sequelize.BOOLEAN
       },
-      specialty: {
-        type: Sequelize.STRING
-      },
+      // specialty: {
+      //   type: Sequelize.STRING
+      // },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

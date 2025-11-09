@@ -21,7 +21,7 @@ export default function HeroSection() {
                 backgroundImage: `url(${heroSection})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                height: { xs: '60vh', md: '75vh' },
+                height: { xs: '80vh', md: 'calc(100vh - 72px)' },
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -37,7 +37,7 @@ export default function HeroSection() {
                 }}
             />
             {/* Text */}
-            <Box sx={{ position: 'relative', zIndex: 2, textAlign: 'center', px: { xs: 2, sm: 4 } }}>
+            <Box sx={{ position: 'relative', margin: '300px 0 0 0', zIndex: 2, textAlign: 'center', px: { xs: 2, sm: 4 } }}>
                 <Typography
                     variant="h3"
                     sx={{

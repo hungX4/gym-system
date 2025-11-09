@@ -3,7 +3,7 @@ import { Box, Typography, Grid, TextField, Link, Stack } from '@mui/material';
 import Container from '@mui/material/Container';
 export default function Footer() {
     return (
-        <Box
+        <Box id="plans-section"
             component="footer"
             sx={{
                 mt: 6,

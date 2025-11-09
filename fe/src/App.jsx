@@ -6,11 +6,11 @@ import Booking from './pages/Booking';
 import Plans from './pages/Plans';
 import AboutUs from './pages/AboutUs';
 import Container from '@mui/material/Container';
-import { Box, Typography, Grid, TextField, Link, Stack } from '@mui/material';
 import Navbar from './components/NavBar';
 import HeroSection from './components/HeroSection';
 import JoinSection from './components/JoinSection';
 import Footer from './components/Footer';
+import ProfileDialog from './components/Profile';
 export default function App() {
   return (
     <Container disableGutters maxWidth={false} sx={{ bgcolor: 'background.default', color: 'text.primary' }}>
@@ -20,7 +20,6 @@ export default function App() {
 
       {/* HERO */}
       <HeroSection />
-
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/booking" element={<Booking />} />

@@ -14,11 +14,13 @@ module.exports = (sequelize, DataTypes) => {
       fullname: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-          notEmpty: { msg: 'Full name không được để trống' },
-          len: { args: [3, 50], msg: 'Full name phải từ 3–50 ký tự' }
-        }
+        // validate: {
+        //   notEmpty: { msg: 'Full name không được để trống' },
+        //   len: { args: [3, 50], msg: 'Full name phải từ 3–50 ký tự' }
+        // }
       },
+      email: DataTypes.STRING,
+
       phonenumber: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -39,19 +41,20 @@ module.exports = (sequelize, DataTypes) => {
           len: { args: [6, 100], msg: 'Mật khẩu phải từ 6 ký tự trở lên' }
         }
       },
-      address: {
-        type: DataTypes.STRING,
-        validate: {
-          len: { args: [0, 255], msg: 'Địa chỉ quá dài' }
-        }
-      },
-      gender: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        validate: {
-          notNull: { msg: 'Giới tính là bắt buộc' }
-        }
-      },
+
+      // address: {
+      //   type: DataTypes.STRING,
+      //   validate: {
+      //     len: { args: [0, 255], msg: 'Địa chỉ quá dài' }
+      //   }
+      // },
+      // gender: {
+      //   type: DataTypes.BOOLEAN,
+      //   allowNull: false,
+      //   validate: {
+      //     notNull: { msg: 'Giới tính là bắt buộc' }
+      //   }
+      // },
       roleid: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

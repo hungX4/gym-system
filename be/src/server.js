@@ -2,16 +2,24 @@
 require('dotenv').config();
 const express = require('express');
 const configViewEngine = require('./config/viewEngine.js');
-const webRoute = require("./routes/web.js");
+const webRoute = require("./routes/auth.js");
 const connection = require('./config/connectDb.js');
 const app = express();
 
+const cors = require('cors');
 // config ViewEngine
 configViewEngine(app);
 
 //env
 const port = process.env.PORT || 8002;
 const hostName = process.env.HOST_NAME;
+
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true, // cho phép cookie httpOnly
+    allowedHeaders: ['Content-Type', 'Authorization'] // tùy chỉnh nếu cần
+}));
 
 app.use('/', webRoute);
 connection();
