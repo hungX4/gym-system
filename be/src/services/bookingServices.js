@@ -125,8 +125,97 @@ const cancelBookingServices = async (booking_id, cancelledBy) => {
     return booking;
 };
 
-const listBookingsForUser = async (user_id) => {
-    return Booking.findAll({ where: { user_id }, order: [['slot_start', 'ASC']] });
+const getScheduleForCoach = async (coachId, weekStartISO) => {
+    const startDate = new Date(weekStartISO);
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 7); // Lấy 7 ngày
+
+    const bookings = await db.Booking.findAll({
+        where: {
+            coach_id: coachId,
+            slot_start: {
+                [Op.between]: [startDate, endDate]
+            },
+            // Chỉ lấy các lịch CHƯA HOÀN THÀNH (để giảm tải)
+            status: {
+                [Op.notIn]: ['completed', 'expired']
+            }
+        },
+        // Quan trọng: Lấy thông tin User (người đặt)
+        include: [{
+            model: db.Users,
+            as: 'user', // Đảm bảo 'as' này khớp với association của bạn
+            attributes: ['fullname', 'phonenumber']
+        }],
+        order: [['slot_start', 'ASC']]
+    });
+
+    const processBooking = bookings.map(booking => {
+        const bookingData = booking.toJSON();
+        //logic handle auto cancel booking request after start
+        const now = new Date();
+        if (bookingData.status === 'pending' && new Date(bookingData.slot_start) < now) {
+            bookingData.status = 'cancelled';
+        }
+        return bookingData;
+    })
+    // 4. Trả về dữ liệu thô
+    return processBooking;
+};
+
+const confirmAndCancelOthers = async (coachId, bookingIdToConfirm) => {
+    // Bắt đầu một transaction
+    const t = await sequelize.transaction();
+
+    try {
+        // Bước 1: Tìm booking được chọn
+        const bookingToConfirm = await Booking.findOne({
+            where: { booking_id: bookingIdToConfirm }
+        }, { transaction: t });
+
+        // Bước 2: Kiểm tra quyền và logic
+        if (!bookingToConfirm) {
+            throw { status: 404, message: "Không tìm thấy lịch đặt này." };
+        }
+        if (bookingToConfirm.coach_id !== coachId) {
+            throw { status: 403, message: "Bạn không có quyền xác nhận lịch này." };
+        }
+        if (bookingToConfirm.status !== 'pending') {
+            throw { status: 400, message: "Lịch này đã được xử lý, không thể xác nhận." };
+        }
+
+        // Bước 3: Cập nhật booking này thành 'confirmed'
+        await bookingToConfirm.update({ status: 'confirmed' }, { transaction: t });
+
+        // Bước 4: Tự động HUỶ (cancel) tất cả các booking 'pending' KHÁC
+        // TRÙNG GIỜ (slot_start) và TRÙNG COACH (coach_id)
+        await Booking.update(
+            { status: 'cancelled' }, // Dữ liệu cần update
+            {
+                where: {
+                    coach_id: coachId,
+                    slot_start: bookingToConfirm.slot_start,
+                    status: 'pending',
+                    // Quan trọng: [Op.ne] = Not Equal (Không phải chính nó)
+                    booking_id: {
+                        [Op.ne]: bookingIdToConfirm
+                    }
+                },
+                transaction: t
+            }
+        );
+
+        // Bước 5: Nếu mọi thứ OK, commit transaction
+        await t.commit();
+
+        return { message: "Xác nhận thành công! Các lịch chờ khác đã bị huỷ." };
+
+    } catch (err) {
+        // Bước 6: Nếu có lỗi, rollback tất cả
+        await t.rollback();
+        console.error("Lỗi Transaction khi confirm:", err);
+        throw err; // Ném lỗi ra để controller bắt
+    }
 };
 
 const listBookingsForCoach = async (coach_id) => {
@@ -205,43 +294,75 @@ const getCoachList = async (opts = {}) => {
 };
 
 const cancelPendingBooking = async (bookingId, userId) => {
-    // Bước 1: Tìm booking đó trong database
-    const booking = await db.Booking.findByPk(bookingId);
+    // Bước 1: Tìm booking VÀ người đang huỷ (để biết role)
+    // (Chúng ta cần biết 'role' của người đang bấm nút huỷ)
+    const [booking, canceller] = await Promise.all([
+        db.Booking.findByPk(bookingId),
+        db.Users.findByPk(userId)
+    ]);
 
-    // Bước 2: Kiểm tra xem booking có tồn tại không
+    // Bước 2: Kiểm tra
     if (!booking) {
         throw new Error('Không tìm thấy lịch đặt này (ID: ' + bookingId + ')');
     }
+    if (!canceller) {
+        throw new Error('Không tìm thấy người dùng (ID: ' + userId + ')');
+    }
 
     // Bước 3: KIỂM TRA BẢO MẬT (Rất quan trọng!)
-    // User này có phải là chủ của booking không?
-    if (booking.user_id !== userId) {
-        // Hoặc user này là coach? (Tùy logic của bạn, nhưng ở đây ta chỉ cho user)
+    // Người huỷ có phải là User đặt lịch không?
+    const isTheUser = (booking.user_id === canceller.id);
+    // Người huỷ có phải là Coach của lịch này không?
+    const isTheCoach = (booking.coach_id === canceller.id && canceller.role === 'coach');
+
+    if (!isTheUser && !isTheCoach) {
+        // Người này không liên quan
         throw new Error('Bạn không có quyền huỷ lịch này');
     }
 
     // Bước 4: KIỂM TRA LOGIC NGHIỆP VỤ (Theo yêu cầu của bạn)
-    // Coach đã xác nhận chưa?
-    if (booking.status !== 'pending') {
-        // Nếu status là 'confirmed', 'completed', 'cancelled' -> không cho xoá
-        // Bạn có thể muốn một logic khác cho 'confirmed' (ví dụ: 'yêu cầu huỷ')
-        // Nhưng theo yêu cầu, ta chỉ xoá nếu 'pending'.
-        throw new Error('Không thể huỷ. Lịch này đã được Coach xác nhận hoặc đã qua.');
+    if (isTheUser) {
+        // User (người đặt) chỉ được huỷ khi 'pending'
+        if (booking.status !== 'pending') {
+            throw new Error('Không thể huỷ. Lịch đã được Coach xác nhận. Vui lòng liên hệ Coach.');
+        }
+    } else if (isTheCoach) {
+        // Coach (người dạy) có thể huỷ 'pending' hoặc 'confirmed'
+        if (booking.status !== 'pending' && booking.status !== 'confirmed') {
+            throw new Error('Không thể huỷ. Lịch này đã hoàn thành hoặc đã bị huỷ trước đó.');
+        }
     }
 
-    // Bước 5: HÀNH ĐỘNG (Xoá)
-    // Vượt qua hết các bài kiểm tra -> Xoá record khỏi database
-    await booking.destroy();
+    // Bước 5: HÀNH ĐỘNG (Dùng logic "cập nhật" thay vì "xoá")
+    const originalStatus = booking.status; // Lưu lại status cũ
+    booking.status = 'cancelled';
+    booking.updated_at = new Date();
+    await booking.save();
 
-    // Không cần trả về gì, vì controller sẽ tự xử lý
-    return;
+    // Bước 6: Tạo History (Ghi lại lịch sử)
+    await db.Histories.create({
+        user_id: booking.user_id,
+        coach_id: booking.coach_id,
+        booking_id: booking.booking_id,
+        action: 'cancel_booking',
+        note: `Cancelled by ${canceller.role} (ID: ${canceller.id})`
+    });
+
+    // Bước 7: Nếu huỷ một lịch đã 'confirmed', phải "giải phóng" slot
+    if (originalStatus === 'confirmed') {
+        // Xoá lịch này khỏi bảng Schedules để coach có thể nhận lịch khác
+        await db.Schedules.destroy({ where: { coach_id: booking.coach_id, slot_start: booking.slot_start } });
+    }
+
+    return booking; // Trả về booking đã được cập nhật
 };
 
 module.exports = {
     createBookingServices,
     confirmBookingServices,
     cancelBookingServices,
-    listBookingsForUser,
+    getScheduleForCoach,
+    confirmAndCancelOthers,
     listBookingsForCoach,
     getCoachList,
     getMyBookingsForWeek,

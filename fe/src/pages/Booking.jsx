@@ -296,8 +296,8 @@ function BookingDetailDialog({ open, onClose, slotData, setSnack }) {
         const token = window.localStorage.getItem('accessToken');
         try {
             //coach_id lấy từ url
-            const coach_id_TODO = coachIdFromQuery; // <--- TODO: SỬA LẠI CHỖ NÀY
-
+            const coach_id_TODO = coachIdFromQuery;
+            // <--- TODO: SỬA LẠI CHỖ NÀ
             const res = await fetch(`${API_BASE}/bookings`, {
                 method: 'POST',
                 headers: {

@@ -14,32 +14,59 @@ import Footer from './components/Footer';
 import ProfileDialog from './components/Profile';
 import AboutCoach from './pages/AboutCoach';
 import AuthDialog from './components/AuthDialog';
+import BookingForCoach from './pages/BookingForCoach';
 export default function App() {
-  // 2. Lấy "cần lái"
+  // 1. "Cần lái"
   const navigate = useNavigate();
 
+  // 2. STATE TRUNG TÂM (Bộ não)
+  // Quản lý xem ai đó đã đăng nhập chưa
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
+  // Quản lý dialog đăng nhập
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  // Quản lý dialog profile
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  // ----- THÊM MỚI: Lưu role của user -----
+  const [userRole, setUserRole] = useState(() => localStorage.getItem('userRole'));
 
-  // 3. ĐÂY LÀ HÀM QUYẾT ĐỊNH
+  // 3. "BỘ ĐIỀU HƯỚNG" (Khi đăng nhập thành công)
   const handleLoginRedirect = (data) => {
-    // 'data' là cái object { token: '...', user: { role: 'coach' } }
-    // mà AuthDialog vừa "ném" lên
+    // data = { token: '...', users: { role: '...' } }
+    setIsLoggedIn(true);
+    setAuthDialogOpen(false); // Đóng dialog đăng nhập
+    console.log(data);
+    // ----- LƯU ROLE VÀO STATE/STORAGE -----
+    const role = data.user?.role; // Lấy role, mặc định là 'user'
+    setUserRole(role);
+    localStorage.setItem('userRole', role); // Lưu lại để F5 không mất
+    // ----------------------------------------------------
 
-    // 4. KIỂM TRA QUYỀN VÀ "LÁI"
-    if (data.users && data.users.role === 'coach') {
-      navigate('/coach/schedule'); // Lái Coach
+
+    if (role === 'coach') {
+      navigate('/bookingforcoach'); // Lái Coach
     } else {
-      navigate('/booking'); // Lái User
+      navigate('/'); // Lái User
     }
+  };
 
-    // 5. Sau khi "lái", đóng Dialog
-    setAuthDialogOpen(false);
+  // 4. HÀM ĐĂNG XUẤT
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    setIsLoggedIn(false);
+    setProfileDialogOpen(false); // Đóng Profile Dialog nếu nó đang mở
+    navigate('/'); // Về trang chủ
   };
 
   return (
     <Container disableGutters maxWidth={false} sx={{ bgcolor: 'background.default', color: 'text.primary' }}>
       {/* NAV */}
-      <Navbar />
+      <Navbar
+        isLoggedIn={isLoggedIn} // << Trạng thái
+        userRole={userRole}
+        onOpenAuthDialog={() => setAuthDialogOpen(true)} // << Công tắc mở Auth
+        onOpenProfileDialog={() => setProfileDialogOpen(true)} // << Công tắc mở Profile
+        onLogout={handleLogout} // << Công tắc Đăng xuất
+      />
       {/* routes */}
       {/* Component Dialog */}
       <AuthDialog
@@ -52,12 +79,24 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/AboutCoach" element={<AboutCoach />} />
+        <Route path="/bookingforcoach" element={<BookingForCoach />} />
         <Route path="/booking" element={<Booking />} />
         <Route path="/plans" element={<Plans />} />
         <Route path="/aboutUs" element={<AboutUs />} />
-
         <Route path="*" element={<Home />} />
       </Routes>
+      <AuthDialog
+        open={authDialogOpen}
+        onClose={() => setAuthDialogOpen(false)}
+        onLoginSuccess={handleLoginRedirect}
+      />
+
+      {/* ProfileDialog sẽ gọi 'handleLogout' khi bấm đăng xuất */}
+      <ProfileDialog
+        open={profileDialogOpen}
+        onClose={() => setProfileDialogOpen(false)}
+        onLogout={handleLogout}
+      />
       {/* JOIN SECTION / "Tham gia ngay" */}
       <JoinSection />
 

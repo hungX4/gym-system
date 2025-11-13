@@ -1,41 +1,60 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import ModeToggle from './ModeToggle';
 import { NavLink, useNavigate } from 'react-router-dom';
-import AuthDialog from './AuthDialog';
-import ProfileDialog from './Profile';
+// import AuthDialog from './AuthDialog';
+// import ProfileDialog from './Profile';
 import AboutCoach from '../pages/AboutCoach';
 const leftItem = [{
     label: 'HOANG KIM COACH', to: '/'
 }]
 
-const rightItem = [
-    { label: 'Đặt lịch', to: '/AboutCoach' },
-    { label: 'Lộ Trình', to: '/plans' },
-    { label: 'Liên Hệ', to: '/contact' },
-    { label: 'Profile', to: '/profile' },
-]
+// const rightItem = [
+//     { label: 'Đặt lịch', to: '/AboutCoach' },
+//     { label: 'Lộ Trình', to: '/plans' },
+//     { label: 'Liên Hệ', to: '/contact' },
+//     { label: 'Profile', to: '/profile' },
+// ]
 
-export default function Navbar() {
+export default function Navbar({ isLoggedIn, userRole, onOpenAuthDialog, onOpenProfileDialog, onLogout }) {
     const navigate = useNavigate();
-    const [openAuth, setOpenAuth] = React.useState(false);
-    const [isLoggedIn, setIsLoggedIn] = React.useState(
-        !!localStorage.getItem('accessToken')
-    );
-    const [openProfile, setOpenProfile] = React.useState(false);
+    console.log(userRole);
+    // ----- 4. TẠO 'rightItem' ĐỘNG BẰNG useMemo -----
+    // Nó sẽ tự tạo lại mảng này khi 'userRole' thay đổi
+    const rightItem = useMemo(() => {
+        // Mảng cơ sở
+        const items = [
+            { label: 'Đặt lịch', to: '/AboutCoach' },
+            { label: 'Lộ Trình', to: '/plans' },
+            { label: 'Liên Hệ', to: '/contact' },
+            { label: 'Profile', to: '/profile' },
+        ];
+
+        // Nếu là coach, "ghi đè" (thay đổi) mục đầu tiên
+        if (userRole === 'coach') {
+            items[0] = { label: 'Lịch dạy', to: '/bookingforcoach' };
+        }
+
+        return items;
+    }, [userRole]);
+
+    // 4. HÀM CLICK ĐƠN GIẢN
     const handleNavClick = (e, item) => {
-        // if it's a NavLink or anchor, prevent default when blocking
-        if ((item.to === '/profile') && !isLoggedIn) {
-            e?.preventDefault();
-            setOpenAuth(true);
-            return;
+        // Chỉ xử lý nút Profile đặc biệt
+        if (item.to === '/profile') {
+            e.preventDefault(); // Ngăn nó navigate
+
+            // 6. KIỂM TRA VÀ GỌI "CÔNG TẮC" TƯƠNG ỨNG
+            // (Giờ 'isLoggedIn' đã được định nghĩa vì nó là prop)
+            if (isLoggedIn) {
+                onOpenProfileDialog(); // << Bấm công tắc "Mở Profile"
+            } else {
+                onOpenAuthDialog(); // << Bấm công tắc "Mở Đăng nhập"
+            }
+            return; // Dừng lại
         }
-        if (item.to === '/profile' && isLoggedIn) {
-            e?.preventDefault();
-            setOpenProfile(true);
-            return;
-        }
-        // otherwise navigate programmatically
+
+        // Các nút khác thì navigate bình thường
         navigate(item.to);
     };
 
@@ -101,7 +120,7 @@ export default function Navbar() {
                 ))}
                 <ModeToggle />
             </Box>
-            <AuthDialog
+            {/* <AuthDialog
                 open={openAuth}
                 onClose={() => setOpenAuth(false)}
                 onLoginSuccess={() => {
@@ -113,12 +132,13 @@ export default function Navbar() {
                     // ta có thể cho họ tới '/profile'
                     navigate('/profile');
                 }}
-            />
+            /> */}
 
-            <ProfileDialog
+            {/* <ProfileDialog
                 open={openProfile}
                 onClose={() => setOpenProfile(false)}
-            />
+                onLogout={handleLogout} // <<< Sửa hàm onLogout
+            /> */}
         </Box>
     );
 }

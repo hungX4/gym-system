@@ -23,7 +23,9 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           notEmpty: { msg: 'Full name không được để trống' },
           len: { args: [3, 50], msg: 'Full name phải từ 3–50 ký tự' }
-        }
+        },
+        charset: 'utf8mb4',
+        collate: 'utf8mb4_unicode_ci'
       },
       email: {
         type: DataTypes.STRING(255),
@@ -63,8 +65,7 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'Users',
       timestamps: true,
       underscored: true,
-      charset: 'utf8mb4',
-      collate: 'utf8mb4_unicode_ci'
+
     }
   );
   Users.associate = function (models) {

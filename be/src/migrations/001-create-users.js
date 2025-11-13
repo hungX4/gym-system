@@ -17,7 +17,9 @@ module.exports = {
       },
       fullname: {
         type: Sequelize.STRING(200),
-        allowNull: false
+        allowNull: false,
+        charset: 'utf8mb4',
+        collate: 'utf8mb4_unicode_ci'
       },
       email: {
         type: Sequelize.STRING(255),

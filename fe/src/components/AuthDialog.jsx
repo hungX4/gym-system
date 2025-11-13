@@ -134,6 +134,7 @@ export default function AuthDialog({ open, onClose, onLoginSuccess }) {
                 body: JSON.stringify({ phonenumber, password })
             });
             const data = await res.json();
+            console.log(data);
             setLoading(false);
             if (!res.ok) {
                 setSnack({ open: true, severity: 'error', message: data.message || 'Đăng nhập lỗi' });

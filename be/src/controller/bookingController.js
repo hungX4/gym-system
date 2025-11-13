@@ -4,7 +4,8 @@ const {
     confirmBookingServices,
     cancelBookingServices,
     listBookingsForUser,
-    listBookingsForCoach,
+    getScheduleForCoach,
+    confirmAndCancelOthers,
     getCoachList,
     getMyBookingsForWeek,
     cancelPendingBooking
@@ -64,12 +65,20 @@ const getCreateBooking = async (req, res) => {
 
 const confirmBooking = async (req, res) => {
     try {
-        const booking_id = req.params.id;
-        // you might want to check req.user.role === 'coach' or 'admin' in production
-        const booking = await confirmBookingServices(booking_id, req.user.id);
-        res.json(booking);
+        const coachId = req.user.id; // ID của coach đang thao tác
+        const { booking_id } = req.body; // ID của lịch hẹn được chấp nhận
+
+        if (!booking_id) {
+            return res.status(400).json({ message: 'Thiếu booking_id' });
+        }
+
+        // Gọi Service, đây là nơi logic phức tạp xảy ra
+        const result = await confirmAndCancelOthers(coachId, booking_id);
+
+        res.status(200).json(result);
+
     } catch (err) {
-        console.error(err);
+        console.error("Lỗi confirmBooking:", err);
         res.status(err.status || 500).json({ message: err.message || 'Server error' });
     }
 };
@@ -98,12 +107,19 @@ const myBookings = async (req, res) => {
 
 const coachBookings = async (req, res) => {
     try {
-        const coach_id = req.user.id;
-        const bookings = await listBookingsForCoach(coach_id);
-        res.json(bookings);
+        const coachId = req.user.id; // Lấy ID của coach đang đăng nhập
+        const { week_start } = req.query; // Lấy ngày bắt đầu tuần
+
+        if (!week_start) {
+            return res.status(400).json({ message: 'Thiếu week_start' });
+        }
+
+        const bookings = await getScheduleForCoach(coachId, week_start);
+        res.status(200).json(bookings);
+
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        console.error("Lỗi getCoachSchedule:", err);
+        res.status(500).json({ message: err.message || 'Server error' });
     }
 };
 
