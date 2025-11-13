@@ -3,6 +3,10 @@ require('dotenv').config();
 const express = require('express');
 const configViewEngine = require('./config/viewEngine.js');
 const webRoute = require("./routes/auth.js");
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
+const booking = require('./routes/booking');
+const specialty = require('./routes/specialty.js')
 const connection = require('./config/connectDb.js');
 const app = express();
 
@@ -21,7 +25,12 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'] // tùy chỉnh nếu cần
 }));
 
-app.use('/', webRoute);
+// app.use('/', webRoute);
+//route
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
+app.use('/bookings', booking);
+app.use('/', specialty);
 connection();
 app.listen(port, hostName, () => {
     console.log(`Example app listening on port ${port}, ${hostName}`);

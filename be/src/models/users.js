@@ -11,18 +11,28 @@ module.exports = (sequelize, DataTypes) => {
 
   Users.init(
     {
+      id: {
+        type: DataTypes.BIGINT.UNSIGNED,
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true
+      },
       fullname: {
         type: DataTypes.STRING,
         allowNull: false,
-        // validate: {
-        //   notEmpty: { msg: 'Full name không được để trống' },
-        //   len: { args: [3, 50], msg: 'Full name phải từ 3–50 ký tự' }
-        // }
+        validate: {
+          notEmpty: { msg: 'Full name không được để trống' },
+          len: { args: [3, 50], msg: 'Full name phải từ 3–50 ký tự' }
+        }
       },
-      email: DataTypes.STRING,
+      email: {
+        type: DataTypes.STRING(255),
+        unique: true,
+        allowNull: true
+      },
 
       phonenumber: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(30),
         allowNull: false,
         unique: { msg: 'Số điện thoại đã tồn tại' },
         validate: {
@@ -34,40 +44,35 @@ module.exports = (sequelize, DataTypes) => {
         }
       },
       password: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(255),
         allowNull: false,
         validate: {
           notEmpty: { msg: 'Mật khẩu không được để trống' },
           len: { args: [6, 100], msg: 'Mật khẩu phải từ 6 ký tự trở lên' }
         }
       },
-
-      // address: {
-      //   type: DataTypes.STRING,
-      //   validate: {
-      //     len: { args: [0, 255], msg: 'Địa chỉ quá dài' }
-      //   }
-      // },
-      // gender: {
-      //   type: DataTypes.BOOLEAN,
-      //   allowNull: false,
-      //   validate: {
-      //     notNull: { msg: 'Giới tính là bắt buộc' }
-      //   }
-      // },
-      roleid: {
-        type: DataTypes.BOOLEAN,
+      role: {
+        type: DataTypes.ENUM('admin', 'user', 'coach'),
         allowNull: false,
-        defaultValue: 0
-      }
+        defaultValue: 'user'
+      },
     },
     {
       sequelize,
       modelName: 'Users',
       tableName: 'Users',
-      timestamps: true
+      timestamps: true,
+      underscored: true,
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_unicode_ci'
     }
   );
-
+  Users.associate = function (models) {
+    Users.hasOne(models.UserDetails, { foreignKey: 'user_id', as: 'detail' });
+    Users.hasMany(models.Booking, { foreignKey: 'user_id', as: 'bookings' });
+    Users.hasMany(models.Schedules, { foreignKey: 'user_id', as: 'schedulesAsUser' });
+    Users.hasMany(models.Schedules, { foreignKey: 'coach_id', as: 'schedulesAsCoach' });
+    Users.hasMany(models.Histories, { foreignKey: 'user_id', as: 'histories' });
+  };
   return Users;
 };

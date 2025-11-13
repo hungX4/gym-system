@@ -14,11 +14,29 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     Specialty.init({
-        name: DataTypes.STRING,
-        images: DataTypes.STRING
+        specialty_id: {
+            type: DataTypes.BIGINT.UNSIGNED,
+            primaryKey: true,
+            allowNull: false,
+            autoIncrement: true
+        },
+        name: {
+            type: DataTypes.STRING(150),
+            allowNull: false
+        },
+        description: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        image: {
+            type: DataTypes.STRING(500),
+            allowNull: true
+        },
     }, {
         sequelize,
         modelName: 'Specialty',
+        tableName: 'Specialty',
+        timestamps: false
     });
     return Specialty;
 };

@@ -10,22 +10,28 @@ module.exports = {
       // gender: DataTypes.BOOLEAN,
       // roleid: DataTypes.STRING
       id: {
+        type: Sequelize.BIGINT.UNSIGNED,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
       },
       fullname: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(200),
+        allowNull: false
       },
       email: {
-        type: Sequelize.STRING
-      },
-      password: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(255),
+        allowNull: true,
+        unique: true
       },
       phonenumber: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(30),
+        allowNull: true,
+        unique: true
+      },
+      password: {
+        type: Sequelize.STRING(255),
+        allowNull: false
       },
       // address: {
       //   type: Sequelize.STRING
@@ -33,23 +39,26 @@ module.exports = {
       // gender: {
       //   type: Sequelize.BOOLEAN
       // },
-      roleid: {
-        type: Sequelize.BOOLEAN
+      role: {
+        type: Sequelize.ENUM('admin', 'user', 'coach')
       },
       // specialty: {
       //   type: Sequelize.STRING
       // },
-      createdAt: {
+      created_at: {
+        type: Sequelize.DATE,
         allowNull: false,
-        type: Sequelize.DATE
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
-      updatedAt: {
+      updated_at: {
+        type: Sequelize.DATE,
         allowNull: false,
-        type: Sequelize.DATE
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
+    await queryInterface.addIndex('Users', ['role']);
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Members');
+    await queryInterface.dropTable('Users');
   }
 };

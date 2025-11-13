@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
 const db = require('../models/index');
 const { raw } = require('express');

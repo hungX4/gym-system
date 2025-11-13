@@ -58,7 +58,7 @@ export default function AuthDialog({ open, onClose, onLoginSuccess }) {
         //     setMode('login');
         // }, 900);
         try {
-            const rest = await fetch('http://localhost:8001/register', {
+            const rest = await fetch('http://localhost:8001/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include', // nếu backend dùng cookie cho refresh token
@@ -102,7 +102,7 @@ export default function AuthDialog({ open, onClose, onLoginSuccess }) {
             setEmail(email);
             // clear password for security
             setPassword('');
-        } catch (error) {
+        } catch (err) {
             console.error('Register error:', err);
             setLoading(false);
             setSnack({ open: true, severity: 'error', message: 'Không thể kết nối tới server' });
@@ -127,7 +127,7 @@ export default function AuthDialog({ open, onClose, onLoginSuccess }) {
         //     }, 600);
         // }, 900);
         try {
-            const res = await fetch('http://localhost:8001/login', {
+            const res = await fetch('http://localhost:8001/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include', // nếu backend dùng cookie cho refresh token
@@ -141,12 +141,12 @@ export default function AuthDialog({ open, onClose, onLoginSuccess }) {
             }
             // lưu access token ở nơi tạm thời (memory / redux) hoặc httpOnly cookie (nếu backend trả cookie)
             // ví dụ lưu tạm:
-            window.localStorage.setItem('accessToken', data.accessToken);
+            window.localStorage.setItem('accessToken', data.token);
 
             setSnack({ open: true, severity: 'success', message: 'Đăng nhập thành công' });
-            onLoginSuccess?.();
+            onLoginSuccess?.(data);
             // tiếp hành động: fetch profile, redirect, đóng dialog
-            onClose?.();
+            // onClose?.();
         } catch (err) {
             setLoading(false);
             setSnack({ open: true, severity: 'error', message: 'Lỗi kết nối' });

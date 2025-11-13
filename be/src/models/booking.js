@@ -14,15 +14,55 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     Booking.init({
-        statusId: DataTypes.STRING,
-        coachId: DataTypes.INTEGER,
-        memberId: DataTypes.INTEGER,
-        date: DataTypes.DATE,
-        note: DataTypes.TEXT,
-        timeType: DataTypes.STRING
+        booking_id: {
+            type: DataTypes.BIGINT.UNSIGNED,
+            primaryKey: true,
+            allowNull: false,
+            autoIncrement: true
+        },
+        user_id: {
+            type: DataTypes.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        coach_id: {
+            type: DataTypes.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        slot_start: {
+            type: DataTypes.DATE,
+            allowNull: false
+        },
+        note: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        status: {
+            type: DataTypes.ENUM('pending', 'confirmed', 'completed', 'cancelled'),
+            allowNull: false,
+            defaultValue: 'pending'
+        },
+        created_at: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW
+        },
+        updated_at: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW
+        }
+
     }, {
         sequelize,
         modelName: 'Booking',
+        timestamps: false,
+        underscored: true,
+        tableName: 'Booking'
     });
+
+    Booking.associate = function (models) {
+        Booking.belongsTo(models.Users, { foreignKey: 'user_id', as: 'user' });
+        Booking.belongsTo(models.Users, { foreignKey: 'coach_id', as: 'coach' });
+        Booking.hasMany(models.Histories, { foreignKey: 'booking_id', as: 'histories' });
+    };
+
     return Booking;
 };

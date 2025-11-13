@@ -4,12 +4,13 @@ import ModeToggle from './ModeToggle';
 import { NavLink, useNavigate } from 'react-router-dom';
 import AuthDialog from './AuthDialog';
 import ProfileDialog from './Profile';
+import AboutCoach from '../pages/AboutCoach';
 const leftItem = [{
-    label: 'Trang chủ', to: '/'
+    label: 'HOANG KIM COACH', to: '/'
 }]
 
 const rightItem = [
-    { label: 'Đặt lịch', to: '/booking' },
+    { label: 'Đặt lịch', to: '/AboutCoach' },
     { label: 'Lộ Trình', to: '/plans' },
     { label: 'Liên Hệ', to: '/contact' },
     { label: 'Profile', to: '/profile' },
@@ -24,7 +25,7 @@ export default function Navbar() {
     const [openProfile, setOpenProfile] = React.useState(false);
     const handleNavClick = (e, item) => {
         // if it's a NavLink or anchor, prevent default when blocking
-        if ((item.to === '/booking' || item.to === '/profile') && !isLoggedIn) {
+        if ((item.to === '/profile') && !isLoggedIn) {
             e?.preventDefault();
             setOpenAuth(true);
             return;
@@ -67,6 +68,8 @@ export default function Navbar() {
                                 fontWeight: 700,
                                 textDecoration: 'underline',
                             },
+                            fontWeight: 'bold',
+                            fontSize: '18px'
                         }}
                         end={item.to === '/'} // ensure exact for home
                     >
@@ -104,9 +107,14 @@ export default function Navbar() {
                 onLoginSuccess={() => {
                     setOpenAuth(false);
                     setIsLoggedIn(true);
-                    navigate('/booking'); // tự chuyển tới trang đặt lịch
+
+                    // Chỗ này không còn quan trọng nữa
+                    // vì người dùng bị chặn ở Profile,
+                    // ta có thể cho họ tới '/profile'
+                    navigate('/profile');
                 }}
             />
+
             <ProfileDialog
                 open={openProfile}
                 onClose={() => setOpenProfile(false)}
