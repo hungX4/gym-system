@@ -18,6 +18,16 @@ const getProfile = async (req, res) => {
     }
 };
 
+const getPublicProfileById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const coachProfile = await getProfileById(id);
+        res.status(200).json(coachProfile);
+    } catch (error) {
+        res.status(err.status || 500).json({ message: error.message || "Server Error" });
+    }
+};
+
 const updateProfile = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -33,4 +43,4 @@ const updateProfile = async (req, res) => {
     }
 };
 
-module.exports = { getProfile, updateProfile };
+module.exports = { getProfile, updateProfile, getPublicProfileById };
