@@ -130,6 +130,7 @@ export default function useProfile(open, onClose) {
     // 👉 Xử lý logout
     const handleLogout = (onLogoutCallback) => {
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('userRole');
         if (onLogoutCallback) onLogoutCallback();
         onClose();
         navigate('/');

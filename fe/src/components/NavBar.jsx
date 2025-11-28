@@ -35,6 +35,9 @@ export default function Navbar({ isLoggedIn, userRole, onOpenAuthDialog, onOpenP
             items[0] = { label: 'Lịch dạy', to: '/bookingforcoach' };
         }
 
+        if (!userRole) {
+            items[0] = { label: 'Đặt Lịch', to: '/AboutCoach' }
+        }
         return items;
     }, [userRole]);
 

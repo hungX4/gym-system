@@ -94,7 +94,7 @@ export default function AboutCoach() {
 
     return (
         <Box sx={{ p: 3 }}>
-            <Typography variant="h5" sx={{ mb: 2 }}>Danh sách Huấn luyện viên</Typography>
+            <Typography variant="h5" sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>Danh sách Huấn luyện viên</Typography>
             <Grid container spacing={2}>
                 {coaches.map(coach => (
                     <Grid item xs={12} sm={6} md={4} key={coach.id}>

@@ -6,7 +6,8 @@ const webRoute = require("./routes/auth.js");
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const booking = require('./routes/booking');
-const specialty = require('./routes/specialty.js')
+const specialty = require('./routes/specialty.js');
+const registrationRoutes = require('./routes/registrationRoutes.js');
 const connection = require('./config/connectDb.js');
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/bookings', booking);
 app.use('/', specialty);
+app.use('/registration', registrationRoutes);
 connection();
 app.listen(port, hostName, () => {
     console.log(`Example app listening on port ${port}, ${hostName}`);

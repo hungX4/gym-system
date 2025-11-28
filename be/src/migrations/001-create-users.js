@@ -17,9 +17,7 @@ module.exports = {
       },
       fullname: {
         type: Sequelize.STRING(200),
-        allowNull: false,
-        charset: 'utf8mb4',
-        collate: 'utf8mb4_unicode_ci'
+        allowNull: false
       },
       email: {
         type: Sequelize.STRING(255),
@@ -35,18 +33,10 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: false
       },
-      // address: {
-      //   type: Sequelize.STRING
-      // },
-      // gender: {
-      //   type: Sequelize.BOOLEAN
-      // },
+
       role: {
         type: Sequelize.ENUM('admin', 'user', 'coach')
       },
-      // specialty: {
-      //   type: Sequelize.STRING
-      // },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -57,7 +47,11 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
-    });
+    },
+      {
+        charset: 'utf8mb4',
+        collate: 'utf8mb4_unicode_ci'
+      });
     await queryInterface.addIndex('Users', ['role']);
   },
   async down(queryInterface, Sequelize) {

@@ -1,19 +1,31 @@
 import React, { useState } from 'react';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { Box, Button, Typography } from '@mui/material';
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField
-} from '@mui/material';
-import AuthDialog from './AuthDialog';
 import heroSection from '../assets/images/hero-section.jpg';
-
+import { useNavigate, useLocation } from 'react-router-dom';
 export default function HeroSection() {
 
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    const [openAuth, setOpenAuth] = React.useState(false);
+    // const handleHeroBtnClick = () => {
+    //     if (location.pathname === '/') {
+    //         navigate('/register-trial');
+    //     }
+    //     else if (location === '/register-trial') {
+    //         const event = new Event('SCROLL_TO_TRIAL_FORM');
+    //         window.dispatchEvent(event);
+    //     }
+    //     else {
+    //         navigate('/register-trial');
+    //     }
+    // }
+
+    const handleHeroBtnClick = () => {
+        const event = new Event('SCROLL_TO_TRIAL_FORM');
+        window.dispatchEvent(event);
+    }
+
     return (
         <Box
             sx={{
@@ -43,7 +55,7 @@ export default function HeroSection() {
                     sx={{
                         color: 'common.white',
                         fontWeight: 700,
-                        fontSize: { xs: '1.6rem', md: '2.75rem' },
+                        fontSize: { xs: '1.6rem', md: '1.6rem' },
                     }}
                 >
                     Tăng cường sức khỏe — Bắt đầu hành trình của bạn
@@ -57,28 +69,26 @@ export default function HeroSection() {
             <Button
                 variant="contained"
                 color="primary"
-                onClick={() => setOpenAuth(true)}
                 sx={{
                     position: 'absolute',
-                    bottom: { xs: 24, md: 60 },
+                    bottom: { xs: 24, md: 24, lg: 60 },
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    bgcolor: '#e53935',
+                    bgcolor: '#da2128',
                     '&:hover': { bgcolor: '#c62828' },
                     fontWeight: 700,
                     px: { xs: 3, md: 5 },
                     py: { xs: 0.8, md: 1.2 },
                     zIndex: 3,
                     width: { xs: '85%', sm: 'auto' },
+                    borderRadius: '0'
                 }}
+                endIcon={<ArrowDownwardIcon />}
+                onClick={handleHeroBtnClick}
             >
                 Tham gia ngay
             </Button>
-            {/* <nav> ...
-                <Button variant="contained" onClick={() => setOpenAuth(true)}>Đăng ký / Đăng nhập</Button>
-            </nav> */}
 
-            <AuthDialog open={openAuth} onClose={() => setOpenAuth(false)} />
         </Box>
     );
 }

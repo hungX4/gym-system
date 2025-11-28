@@ -2,23 +2,26 @@
 import { React, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Booking from './pages/Booking';
 import Plans from './pages/Plans';
 import AboutUs from './pages/AboutUs';
 import Container from '@mui/material/Container';
 import Navbar from './components/NavBar';
 import HeroSection from './components/HeroSection';
-import JoinSection from './components/JoinSection';
 import Footer from './components/Footer';
 import ProfileDialog from './components/Profile';
 import AboutCoach from './pages/AboutCoach';
 import AuthDialog from './components/AuthDialog';
 import BookingForCoach from './pages/BookingForCoach';
+import RegisterTrial from './pages/RegisterTrials';
+import AdminDashboard from './pages/AdminDashBoard';
 export default function App() {
   // 1. "Cần lái"
   const navigate = useNavigate();
-
+  const location = useLocation();
+  // Kiểm tra xem có phải đang ở trang Admin không
+  const isAdminRoute = location.pathname.startsWith('/admin');
   // 2. STATE TRUNG TÂM (Bộ não)
   // Quản lý xem ai đó đã đăng nhập chưa
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
@@ -47,15 +50,43 @@ export default function App() {
     } else {
       navigate('/'); // Lái User
     }
+
+    if (role === 'admin') {
+      navigate('/admin/dashboard');
+    } else if (role === 'coach') {
+      navigate('/BookingForCoach');
+    } else {
+      navigate('/booking');
+    }
   };
 
   // 4. HÀM ĐĂNG XUẤT
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     setIsLoggedIn(false);
-    setProfileDialogOpen(false); // Đóng Profile Dialog nếu nó đang mở
+    setProfileDialogOpen(false);
+    setUserRole(null); // Đóng Profile Dialog nếu nó đang mở
     navigate('/'); // Về trang chủ
   };
+
+  // Nếu là Admin Route: Render giao diện riêng (Full màn hình, không Container giới hạn)
+  if (isAdminRoute) {
+    return (
+      <>
+        <Routes>
+          {/* Route Admin */}
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        </Routes>
+
+        {/* Vẫn giữ AuthDialog để xử lý hết phiên đăng nhập nếu cần */}
+        <AuthDialog
+          open={authDialogOpen}
+          onClose={() => setAuthDialogOpen(false)}
+          onLoginSuccess={handleLoginRedirect}
+        />
+      </>
+    );
+  }
 
   return (
     <Container disableGutters maxWidth={false} sx={{ bgcolor: 'background.default', color: 'text.primary' }}>
@@ -74,10 +105,9 @@ export default function App() {
         onClose={() => setAuthDialogOpen(false)}
         onLoginSuccess={handleLoginRedirect} // <-- 6. Gắn "não" vào Dialog
       />
-      {/* HERO */}
       <HeroSection />
+
       <Routes>
-        <Route path="/" element={<Home />} />
         <Route path="/AboutCoach" element={<AboutCoach />} />
         <Route path="/bookingforcoach" element={<BookingForCoach />} />
         <Route path="/booking" element={<Booking />} />
@@ -85,6 +115,7 @@ export default function App() {
         <Route path="/aboutUs" element={<AboutUs />} />
         <Route path="*" element={<Home />} />
       </Routes>
+      <RegisterTrial />
       <AuthDialog
         open={authDialogOpen}
         onClose={() => setAuthDialogOpen(false)}
@@ -97,8 +128,6 @@ export default function App() {
         onClose={() => setProfileDialogOpen(false)}
         onLogout={handleLogout}
       />
-      {/* JOIN SECTION / "Tham gia ngay" */}
-      <JoinSection />
 
       {/* FOOTER */}
       <Footer />

@@ -53,6 +53,21 @@ const isCoach = (req, res, next) => {
         return res.status(403).json({ message: 'Truy cập bị từ chối. Chỉ Coach mới có quyền này.' });
     }
 };
+const isAdmin = (req, res, next) => {
+    // 1. Kiểm tra xem user đã đăng nhập chưa
+    if (!req.user) {
+        return res.status(401).json({ message: 'Chưa xác thực (No User Found)' });
+    }
+
+    // 2. Kiểm tra Role
+    // (Giả sử trong DB bạn lưu role là 'admin')
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Truy cập bị từ chối. Yêu cầu quyền Admin.' });
+    }
+
+    // 3. Cho qua
+    next();
+};
 
 /**
  * (Bạn có thể làm tương tự cho Admin)
@@ -70,5 +85,5 @@ const isAdmin = (req, res, next) => {
 module.exports = {
     auth,
     isCoach,
-    // isAdmin
+    isAdmin
 };
